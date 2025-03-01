@@ -1,7 +1,43 @@
+"use client";
+
 import { Github, Mail } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 export default function SignupPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const router = useRouter();
+  const handleSignup = async (e) => {
+    e.preventDefault();
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Something went wrong");
+
+      localStorage.setItem("token", data.token);
+      router.push("/d");
+    } catch (error) {
+      console.error(error);
+      setErrorMessage(
+        error.message || "Registration failed. Please try again."
+      );
+    }
+  };
+
   return (
     <div className="py-5 px-4">
       <section class="overflow-hidden rounded-[0.5rem] border bg-background shadow">
@@ -51,7 +87,23 @@ export default function SignupPage() {
                 </p>
               </div>
               <div class="grid gap-6">
-                <form>
+                {errorMessage && (
+                  <Alert variant="destructive">
+                    <div className="flex justify-between w-full">
+                      <div>
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>{errorMessage}</AlertDescription>
+                      </div>
+                      <button
+                        onClick={() => setErrorMessage(null)}
+                        className="text-white"
+                      >
+                        ❌
+                      </button>
+                    </div>
+                  </Alert>
+                )}
+                <form onSubmit={handleSignup}>
                   <div class="grid gap-2">
                     <div class="grid gap-1">
                       <label
@@ -68,6 +120,8 @@ export default function SignupPage() {
                         autocomplete="email"
                         autocorrect="off"
                         type="email"
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
                       />
                       <label
                         class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 sr-only"
@@ -80,9 +134,10 @@ export default function SignupPage() {
                         id="password"
                         placeholder="********"
                         autocapitalize="none"
-                        autocomplete="password"
                         autocorrect="off"
                         type="password"
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
                       />
                     </div>
                     <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2">
