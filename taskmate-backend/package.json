@@ -4,8 +4,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "kill-port": "node killPort.js",
+    "start": "npm run kill-port && node src/server.js",
+    "dev": "npm run kill-port && nodemon src/server.js"
   },
   "keywords": [],
   "author": "",
