@@ -6,16 +6,22 @@ import { Github, Mail } from "lucide-react";
 import Link from "next/link";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
+import { auth, googleProvider, githubProvider } from "@/lib/firebase";
+import { signInWithPopup } from "firebase/auth";
+
 export default function LoginPage() {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
     setErrorMessage(null);
+
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
@@ -33,6 +39,69 @@ export default function LoginPage() {
       router.push("/d");
     } catch (error) {
       setErrorMessage(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const idToken = await result.user.getIdToken();
+
+      if (!idToken) throw new Error("Google ID Token not found");
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google-login`, // اطمینان از اینکه این لاگین است نه ساین‌آپ
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken }),
+        }
+      );
+
+      const data = await response.json();
+      console.log("Backend Response:", data);
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        router.push("/dashboard"); // مسیر موردنظر بعد از ورود
+      } else {
+        throw new Error(data.message || "Google login failed");
+      }
+    } catch (error) {
+      console.error("Google Login Error:", error);
+    }
+  };
+
+  const handleGithubLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, githubProvider);
+      const credential = GithubAuthProvider.credentialFromResult(result);
+      const accessToken = credential.accessToken;
+
+      if (!accessToken) throw new Error("GitHub access token not found");
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/github-login`, // این باید لاگین هندل کنه
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessToken }),
+        }
+      );
+
+      const data = await response.json();
+      console.log("Backend Response:", data);
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        router.push("/dashboard");
+      } else {
+        throw new Error(data.message || "GitHub login failed");
+      }
+    } catch (error) {
+      console.error("GitHub Login Error:", error);
     }
   };
 
@@ -137,9 +206,17 @@ export default function LoginPage() {
                         required
                       />
                     </div>
-                    <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2">
-                      <Mail className="h-4 w-4" />
-                      Login with Email
+                    <button
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        "Loging In..."
+                      ) : (
+                        <>
+                          <Mail className="h-4 w-4" /> Login with Email
+                        </>
+                      )}
                     </button>
                   </div>
                 </form>
@@ -156,11 +233,16 @@ export default function LoginPage() {
                 <button
                   class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
                   type="button"
+                  onClick={() => handleGithubLogin("github")}
                 >
                   <Github className="h-4 w-4" />
                   Login with GitHub
                 </button>
-                <button class="-mt-[1rem] inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-destructive text-destructive-foreground shadow hover:bg-destructive/90 h-9 px-4 py-2">
+                <button
+                  class="-mt-[1rem] inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-destructive text-destructive-foreground shadow hover:bg-destructive/90 h-9 px-4 py-2"
+                  type="button"
+                  onClick={() => handleGoogleLogin("google")}
+                >
                   <Mail className="h-4 w-4" />
                   Login with Gmail
                 </button>

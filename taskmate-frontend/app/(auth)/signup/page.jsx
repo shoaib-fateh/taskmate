@@ -5,15 +5,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { auth, googleProvider, githubProvider } from "@/lib/firebase";
+import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
   const handleSignup = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
       const res = await fetch(
@@ -35,6 +39,73 @@ export default function SignupPage() {
       setErrorMessage(
         error.message || "Registration failed. Please try again."
       );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle Google Signup
+  const handleGoogleSignup = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const idToken = await result.user.getIdToken();
+
+      if (!idToken) throw new Error("Google ID Token not found");
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google-signup`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken }),
+        }
+      );
+
+      const data = await response.json();
+      console.log("Backend Response:", data);
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        router.push("/d");
+      } else {
+        throw new Error(data.message || "Google login failed");
+      }
+    } catch (error) {
+      console.error("Google Signup Error:", error);
+    }
+  };
+
+  // Handle GitHub Signup
+  const handleGithubSignup = async () => {
+    try {
+      const result = await signInWithPopup(auth, githubProvider);
+      const credential = GithubAuthProvider.credentialFromResult(result);
+      const accessToken = credential.accessToken; // گرفتن accessToken
+
+      if (!accessToken) throw new Error("GitHub access token not found");
+
+      // ارسال accessToken به بک‌اند
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google-signup`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessToken }),
+        }
+      );
+
+      const data = await response.json();
+      console.log("Backend Response:", data);
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        router.push("/d");
+      } else {
+        throw new Error(data.message || "GitHub login failed");
+      }
+    } catch (error) {
+      console.error("GitHub Signup Error:", error);
+      setErrorMessage("GitHub Signup failed. Try again.");
     }
   };
 
@@ -140,9 +211,17 @@ export default function SignupPage() {
                         required
                       />
                     </div>
-                    <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2">
-                      <Mail className="h-4 w-4" />
-                      Signup with Email
+                    <button
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        "Signing Up..."
+                      ) : (
+                        <>
+                          <Mail className="h-4 w-4" /> Signup with Email
+                        </>
+                      )}
                     </button>
                   </div>
                 </form>
@@ -159,11 +238,15 @@ export default function SignupPage() {
                 <button
                   class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
                   type="button"
+                  onClick={handleGithubSignup}
                 >
                   <Github className="h-4 w-4" />
                   Signup with GitHub
                 </button>
-                <button class="-mt-[1rem] inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-destructive text-destructive-foreground shadow hover:bg-destructive/90 h-9 px-4 py-2">
+                <button
+                  class="-mt-[1rem] inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-destructive text-destructive-foreground shadow hover:bg-destructive/90 h-9 px-4 py-2"
+                  onClick={handleGoogleSignup}
+                >
                   <Mail className="h-4 w-4" />
                   Signup with Gmail
                 </button>
