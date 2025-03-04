@@ -1,4 +1,5 @@
 import GoogleOneTapLogin from "@/components/GoogleOneTapLogin";
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata = {
   title: "Signin/Login",
@@ -9,7 +10,9 @@ export default function AuthLayout({ children }) {
   return (
     <html lang="en">
       <head />
-      <body>{children}</body>
+      <body>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
       <GoogleOneTapLogin />
     </html>
   );

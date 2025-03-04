@@ -2,6 +2,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Navbar } from "../../components/ui/navbar";
+import { AuthProvider } from "@/context/AuthContext";
 
 export default function DashboardLayout({ children }) {
   return (

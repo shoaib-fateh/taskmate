@@ -4,6 +4,8 @@ import {
   register,
   googleLogin,
   githubLogin,
+  googleSignup,
+  githubSignup,
 } from "../controllers/authController.js";
 
 const router = express.Router();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Github, Mail } from "lucide-react";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 import { auth, googleProvider, githubProvider } from "@/lib/firebase";
 import { signInWithPopup } from "firebase/auth";
+import Cookies from "js-cookie";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,7 +36,7 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Invalid credentials");
 
-      localStorage.setItem("token", data.token);
+      Cookies.set("token", data.token, { expires: 7 });
       router.push("/d");
     } catch (error) {
       setErrorMessage(error.message);
@@ -64,7 +65,7 @@ export default function LoginPage() {
       console.log("Backend Response:", data);
 
       if (data.token) {
-        localStorage.setItem("token", data.token);
+        Cookies.set("token", data.token, { expires: 7 });
         router.push("/dashboard"); // مسیر موردنظر بعد از ورود
       } else {
         throw new Error(data.message || "Google login failed");
@@ -95,7 +96,7 @@ export default function LoginPage() {
       console.log("Backend Response:", data);
 
       if (data.token) {
-        localStorage.setItem("token", data.token);
+        Cookies.set("token", data.token, { expires: 7 });
         router.push("/dashboard");
       } else {
         throw new Error(data.message || "GitHub login failed");
@@ -107,53 +108,53 @@ export default function LoginPage() {
 
   return (
     <div className="py-5 px-4">
-      <section class="overflow-hidden rounded-[0.5rem] border bg-background shadow">
-        <div class="container relative hidden h-[100vh] flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
+      <section className="overflow-hidden rounded-[0.5rem] border bg-background shadow">
+        <div className="container relative hidden h-[100vh] flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
           <Link
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 absolute right-4 top-4 md:right-8 md:top-8"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 absolute right-4 top-4 md:right-8 md:top-8"
             href="/signup"
           >
             Signup
           </Link>
-          <div class="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
-            <div class="absolute inset-0 bg-zinc-900"></div>
-            <div class="relative z-20 flex items-center text-lg font-medium">
+          <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
+            <div className="absolute inset-0 bg-zinc-900"></div>
+            <div className="relative z-20 flex items-center text-lg font-medium">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="mr-2 h-6 w-6"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2 h-6 w-6"
               >
                 <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"></path>
               </svg>
               Acme Inc
             </div>
-            <div class="relative z-20 mt-auto">
-              <blockquote class="space-y-2">
-                <p class="text-lg">
+            <div className="relative z-20 mt-auto">
+              <blockquote className="space-y-2">
+                <p className="text-lg">
                   “This library has saved me countless hours of work and helped
                   me deliver stunning designs to my clients faster than ever
                   before.”
                 </p>
-                <footer class="text-sm">Sofia Davis</footer>
+                <footer className="text-sm">Sofia Davis</footer>
               </blockquote>
             </div>
           </div>
-          <div class="lg:p-8">
-            <div class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-              <div class="flex flex-col space-y-2 text-center">
-                <h1 class="text-2xl font-semibold tracking-tight">
+          <div className="lg:p-8">
+            <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+              <div className="flex flex-col space-y-2 text-center">
+                <h1 className="text-2xl font-semibold tracking-tight">
                   Access Your Account
                 </h1>
-                <p class="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Enter your email below to access your account
                 </p>
               </div>
-              <div class="grid gap-6">
+              <div className="grid gap-6">
                 {errorMessage && (
                   <Alert variant="destructive">
                     <div className="flex justify-between w-full">
@@ -171,43 +172,43 @@ export default function LoginPage() {
                   </Alert>
                 )}
                 <form onSubmit={handleLogin}>
-                  <div class="grid gap-2">
-                    <div class="grid gap-1">
+                  <div className="grid gap-2">
+                    <div className="grid gap-1">
                       <label
-                        class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 sr-only"
-                        for="email"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 sr-only"
+                        htmlFor="email"
                       >
                         Email
                       </label>
                       <input
-                        class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                         id="email"
                         placeholder="Your email"
-                        autocapitalize="none"
-                        autocomplete="email"
-                        autocorrect="off"
+                        autoCapitalize="none"
+                        autoComplete="email"
+                        autoCorrect="off"
                         type="email"
                         onChange={(e) => setEmail(e.target.value)}
                         required
                       />
                       <label
-                        class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 sr-only"
-                        for="password"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 sr-only"
+                        htmlFor="password"
                       >
                         Password
                       </label>
                       <input
-                        class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                         id="password"
                         placeholder="Your password"
-                        autocapitalize="none"
+                        autoCapitalize="none"
                         type="password"
                         onChange={(e) => setPassword(e.target.value)}
                         required
                       />
                     </div>
                     <button
-                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
+                      className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
                       disabled={loading}
                     >
                       {loading ? (
@@ -220,18 +221,18 @@ export default function LoginPage() {
                     </button>
                   </div>
                 </form>
-                <div class="relative">
-                  <div class="absolute inset-0 flex items-center">
-                    <span class="w-full border-t"></span>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t"></span>
                   </div>
-                  <div class="relative flex justify-center text-xs uppercase">
-                    <span class="bg-background px-2 text-muted-foreground">
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
                       Or continue with
                     </span>
                   </div>
                 </div>
                 <button
-                  class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
                   type="button"
                   onClick={() => handleGithubLogin("github")}
                 >
@@ -239,7 +240,7 @@ export default function LoginPage() {
                   Login with GitHub
                 </button>
                 <button
-                  class="-mt-[1rem] inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-destructive text-destructive-foreground shadow hover:bg-destructive/90 h-9 px-4 py-2"
+                  className="-mt-[1rem] inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-destructive text-destructive-foreground shadow hover:bg-destructive/90 h-9 px-4 py-2"
                   type="button"
                   onClick={() => handleGoogleLogin("google")}
                 >
@@ -247,10 +248,10 @@ export default function LoginPage() {
                   Login with Gmail
                 </button>
               </div>
-              <p class="px-8 text-center text-sm text-muted-foreground">
+              <p className="px-8 text-center text-sm text-muted-foreground">
                 Don't have an account?{" "}
                 <Link
-                  class="underline underline-offset-4 hover:text-primary"
+                  className="underline underline-offset-4 hover:text-primary"
                   href="/signup"
                 >
                   Create an account
