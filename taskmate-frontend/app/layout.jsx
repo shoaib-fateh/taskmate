@@ -1,5 +1,6 @@
 import "../styles/globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import RouteGuard from "@/components/route-guard";
 
 export const metadata = {
   title: "Task Mate",
@@ -18,7 +19,7 @@ export default function RootLayout({ children }) {
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <RouteGuard>{children}</RouteGuard>
         </ThemeProvider>
       </body>
     </html>

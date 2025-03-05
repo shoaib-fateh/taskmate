@@ -1,26 +1,42 @@
-// app/layout
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Navbar } from "../../components/ui/navbar";
-import { AuthProvider } from "@/context/AuthContext";
+import RouteGuard from "@/components/route-guard";
+import { ThemeProvider } from "@/components/theme-provider";
+
+export const metadata = {
+  title: "Dashboard | MyApp",
+  description:
+    "Manage your account and access all features from your dashboard.",
+};
 
 export default function DashboardLayout({ children }) {
   return (
-    <>
-      <html>
-        <head />
-        <body className="flex">
+    <html lang="en">
+      <head>
+        <title>{metadata.title}</title>
+        <meta name="description" content={metadata.description} />
+      </head>
+      <body className="flex">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           <SidebarProvider>
             <AppSidebar />
             <div className="flex-1 flex flex-col">
               <Navbar>
                 <SidebarTrigger />
               </Navbar>
-              <main className="p-6">{children}</main>
+              <main className="p-6">
+                <RouteGuard>{children}</RouteGuard>
+              </main>
             </div>
           </SidebarProvider>
-        </body>
-      </html>
-    </>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }
