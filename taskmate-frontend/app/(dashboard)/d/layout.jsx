@@ -2,7 +2,6 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Navbar } from "../../components/ui/navbar";
 import RouteGuard from "@/components/route-guard";
-import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata = {
   title: "Dashboard | MyApp",
@@ -18,24 +17,17 @@ export default function DashboardLayout({ children }) {
         <meta name="description" content={metadata.description} />
       </head>
       <body className="flex">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <SidebarProvider>
-            <AppSidebar />
-            <div className="flex-1 flex flex-col">
-              <Navbar>
-                <SidebarTrigger />
-              </Navbar>
-              <main className="p-6">
-                <RouteGuard>{children}</RouteGuard>
-              </main>
-            </div>
-          </SidebarProvider>
-        </ThemeProvider>
+        <SidebarProvider>
+          <AppSidebar />
+          <div className="flex-1 flex flex-col">
+            <Navbar>
+              <SidebarTrigger />
+            </Navbar>
+            <main className="p-6">
+              <RouteGuard>{children}</RouteGuard>
+            </main>
+          </div>
+        </SidebarProvider>
       </body>
     </html>
   );
