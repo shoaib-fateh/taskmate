@@ -23,9 +23,7 @@ export default function DashboardLayout({ children }) {
             <Navbar>
               <SidebarTrigger />
             </Navbar>
-            <main className="p-6">
-              <RouteGuard>{children}</RouteGuard>
-            </main>
+            <RouteGuard>{children}</RouteGuard>
           </div>
         </SidebarProvider>
       </body>
