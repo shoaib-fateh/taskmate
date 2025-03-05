@@ -1,7 +1,6 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
-import { Navbar } from "../../components/ui/navbar";
 import RouteGuard from "@/components/route-guard";
+import Sidebar from "@/components/sidebar";
+import Header from "@/components/header";
 
 export const metadata = {
   title: "Dashboard | MyApp",
@@ -16,16 +15,18 @@ export default function DashboardLayout({ children }) {
         <title>{metadata.title}</title>
         <meta name="description" content={metadata.description} />
       </head>
-      <body className="flex">
-        <SidebarProvider>
-          <AppSidebar />
-          <div className="flex-1 flex flex-col">
-            <Navbar>
-              <SidebarTrigger />
-            </Navbar>
-            <RouteGuard>{children}</RouteGuard>
+      <body className="bg-transparent">
+        <Header />
+
+        <div style={{ minHeight: "calc(100vh - 40px)" }}>
+          <div className="mx-auto max-w-[1100px] flex items-start flex-row justify-center pb-[40px]">
+            <Sidebar className="max-sm:hidden mt-[40px] max-h-[90vh] px-[16px] sticky top-[40px] w-[256px]" />
+
+            <div className="mt-[40px] max-sm:w-[500px] sm:pl-[45px] w-[620px]">
+              <RouteGuard>{children}</RouteGuard>
+            </div>
           </div>
-        </SidebarProvider>
+        </div>
       </body>
     </html>
   );
