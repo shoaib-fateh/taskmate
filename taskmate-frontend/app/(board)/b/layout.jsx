@@ -1,28 +1,32 @@
 import RouteGuard from "@/components/route-guard";
-import Sidebar from "@/components/sidebar";
 import Header from "@/components/header";
+import Sideboard from "@/components/sideboard";
+import BoardHeader from "@/components/board-header";
 
 export const metadata = {
-  title: "Dashboard | MyApp",
+  title: "Board",
   description:
     "Manage your account and access all features from your dashboard.",
 };
 
-export default function DashboardLayout({ children }) {
+export default function BoardLayout({ children }) {
   return (
     <html lang="en">
       <head>
         <title>{metadata.title}</title>
         <meta name="description" content={metadata.description} />
       </head>
-      <body className="dark:bg-transparent">
+      <body className="dark:bg-transparent overflow-hidden">
         <Header />
 
         <div style={{ minHeight: "calc(100vh - 40px)" }}>
-          <div className="mx-auto max-w-[1100px] flex items-start flex-row justify-center pb-[40px]">
-            <Sidebar className="max-sm:hidden mt-[40px] max-h-[90vh] w-[256px] px-[16px] sticky top-[40px]" />
-
-            <div className="mt-[40px] max-sm:w-[500px] sm:pl-[45px] w-[620px]">
+          <div className="flex items-start flex-row">
+            <Sideboard className="sticky top-0 right-0 w-[280px] border-r border-gray-500 overflow-auto" />
+            <div
+              className=" bg-gray-700 overflow-auto"
+              style={{ height: "calc(100vh - 40px)", width: "100%"  }}
+            >
+              <BoardHeader />
               <RouteGuard>{children}</RouteGuard>
             </div>
           </div>

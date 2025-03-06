@@ -13,7 +13,7 @@ export default function Dashboard() {
       >
         <img src="" className="w-100" alt="" />
       </div>
-      <div className="px-2 py-4 text-center text-[#B6C2CF]">
+      <div className="px-2 py-4 text-center text-gray-600 dark:text-[#B6C2CF]">
         <h1 className="font-bold text-lg mb-3">Stay on track and up to date</h1>
         <p>
           Invite people to boards and cards, leave comments, add due dates, and

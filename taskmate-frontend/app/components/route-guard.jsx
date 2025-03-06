@@ -13,14 +13,14 @@ export default function RouteGuard({ children }) {
     const token = Cookies.get("token");
 
     const authRoutes = ["/", "/login", "/signup"];
-    const protectedRoutePrefix = "/d/";
+    const protectedRoutesPrefix = ["/d/", "/b/"];
 
     if (token && authRoutes.includes(pathname)) {
       router.replace("/d");
       return;
     }
 
-    if (!token && pathname.startsWith(protectedRoutePrefix)) {
+    if (!token && protectedRoutesPrefix.includes(pathname)) {
       router.replace("/login");
       return;
     }
