@@ -1,8 +1,9 @@
 import express from "express";
-import { createBoard } from "../controllers/boardController.js";
+import { createBoard, getBoards } from "../controllers/boardController.js";
 
 const router = express.Router();
 
 router.post("/create-board", createBoard);
+router.get("/get-boards", getBoards);
 
 export default router;

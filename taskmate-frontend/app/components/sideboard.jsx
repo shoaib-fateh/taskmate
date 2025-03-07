@@ -1,21 +1,53 @@
+"use client";
+
 import { BoxSelect, Plus, User2 } from "lucide-react";
 import CustomAvatar from "@/components/custom-avatar";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import useAuth from "@/hooks/useAuth";
+
 
 export default function Sideboard({ className }) {
-  const mockBoards = [
-    {
-      avatarFallback: "RJ",
-      text: "Remote Job",
-      avatarImage: "",
-      color: "green",
-    },
-    {
-      avatarFallback: "1F",
-      text: "1-o-1 Freelancing",
-      avatarImage: "",
-      color: "yellow",
-    },
-  ];
+  const [boards, setBoards] = useState([]);
+  const [members, setMembers] = useState([]);
+  const { id1, id2, id3 } = useParams();
+  const boardId = id2;
+
+  const userData = useAuth()
+
+  useEffect(() => {
+    const fetchBoards = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/boards/get-boards?userId=${userData?.uid}`, {
+          method: "GET",
+        });
+        console.log(res);
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        setBoards(data || []);
+      } catch (error) {
+        console.error("Error fetching boards:", error);
+      }
+    };
+
+    const fetchMembers = async () => {
+      if (!boardId) return;
+      try {
+        const res = await fetch(`/api/get-board-members/${boardId}`);
+        const data = await res.json();
+        setMembers(data.members || []);
+      } catch (error) {
+        console.error("Error fetching members:", error);
+      }
+    };
+
+    fetchBoards();
+    // fetchMembers();
+  }, [boardId]);
 
   const mockMembers = [
     {
@@ -86,12 +118,12 @@ export default function Sideboard({ className }) {
         </div>
 
         <div className="bord">
-          {mockBoards.map(({ avatarFallback, avatarImage, text, color }) => (
+          {boards.map(({ boardId, boardTitle, coverImage }, index) => (
             <CustomAvatar
-              avatarFallbackClass={`bg-${color}-500 rounded-full text-sm`}
-              avatarFallback={avatarFallback}
-              avatarImage={avatarImage}
-              text={text}
+              key={index}
+              avatarFallback={boardTitle.slice(0, 2).toUpperCase()}
+              avatarImage={coverImage}
+              text={boardTitle}
               className="mb-1 cursor-pointer hover:opacity-85"
             />
           ))}

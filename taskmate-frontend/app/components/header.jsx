@@ -17,15 +17,15 @@ import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import AvatarComponent from "@/components/avatar-component";
 
-import { jwtDecode } from "jwt-decode";
+import useAuth from "@/hooks/useAuth";
 
 export default function Header() {
   const { setTheme } = useTheme();
   const router = useRouter();
+  const userData = useAuth()
 
   const [selectedOption, setSelectedOption] = useState("private");
   const [isOpen, setIsOpen] = useState(false);
-  const [userData, setUserData] = useState(null);
   const [boardTitle, setBoardTitle] = useState("");
 
   const handleSelectChange = (value) => {
@@ -38,14 +38,7 @@ export default function Header() {
     router.push("/login");
   };
 
-  useEffect(() => {
-    const token = Cookies.get("token");
 
-    if (token) {
-      const decodedToken = jwtDecode(token);
-      setUserData(decodedToken);
-    }
-  }, []);
 
   const handleCreateBoard = async () => {
     if (!userData?.uid || !boardTitle.trim()) {
@@ -64,7 +57,7 @@ export default function Header() {
           body: JSON.stringify({
             userId: userData.uid,
             boardTitle: boardTitle,
-            type: selectedOption,
+            visibility: selectedOption,
           }),
         }
       );

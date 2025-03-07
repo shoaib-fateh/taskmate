@@ -3,7 +3,7 @@ import { db } from "../firebase.js";
 const generateBoardId = () => {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let boardId = "";
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 5; i++) {
     boardId += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return boardId;
@@ -11,9 +11,9 @@ const generateBoardId = () => {
 
 export const createBoard = async (req, res) => {
   try {
-    const { userId, boardTitle, type } = req.body;
+    const { userId, boardTitle, visibility, coverImage = "" } = req.body;
 
-    if (!userId || !boardTitle || !type) {
+    if (!userId || !boardTitle || !visibility) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -24,9 +24,11 @@ export const createBoard = async (req, res) => {
     const newBoard = {
       userId,
       boardTitle,
-      type,
+      visibility,
       boardId,
       lists: [],
+      members: [{ userId, role: "admin" }],
+      coverImage,
       createdAt: new Date().toISOString(),
       boardUrl,
     };
@@ -36,6 +38,30 @@ export const createBoard = async (req, res) => {
     res.status(201).json({ message: "Board created successfully", boardUrl });
   } catch (error) {
     console.error("Error creating board:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
+
+export const getBoards = async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    const snapshot = await db.collection("boards").where("userId", "==", userId).get();
+
+    const boards = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    res.status(200).json(boards);
+  } catch (error) {
+    console.error("Error fetching boards:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
