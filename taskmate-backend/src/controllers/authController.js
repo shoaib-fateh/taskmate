@@ -4,6 +4,21 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import axios from "axios";
 
+const createUserObject = (
+  uid,
+  email,
+  username,
+  profileImage,
+  password = null
+) => ({
+  uid,
+  email,
+  username,
+  profileImage,
+  password: password ? bcrypt.hashSync(password, 10) : null,
+  createdAt: new Date(),
+});
+
 // Register User
 export const register = async (req, res) => {
   try {
@@ -17,20 +32,26 @@ export const register = async (req, res) => {
     } catch (err) {}
 
     const user = await auth.createUser({ email, password });
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const username = email.split("@")[0];
+    const userObject = createUserObject(
+      user.uid,
+      email,
+      username,
+      "",
+      password
+    );
 
-    await db.collection("users").doc(user.uid).set({
-      uid: user.uid,
-      email: email,
-      password: hashedPassword,
-      createdAt: new Date(),
-    });
+    await db.collection("users").doc(user.uid).set(userObject);
 
-    const token = jwt.sign({ uid: user.uid, email }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      { uid: user.uid, email, username },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
 
-    res.json({ token, uid: user.uid, email });
+    res.json({ token, uid: user.uid, email, username });
   } catch (error) {
     console.error("Register Error:", error);
     res.status(500).json({ message: error.message });
@@ -63,12 +84,12 @@ export const login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { uid: userRecord.uid, email: userRecord.email },
+      { uid: userRecord.uid, email: userRecord.email, username: userData.username },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    res.json({ token, uid: userRecord.uid, email: userRecord.email });
+    res.json({ token, uid: userRecord.uid, email: userRecord.email, username: userData.username });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong!" });
   }
@@ -83,7 +104,7 @@ export const googleSignup = async (req, res) => {
       return res.status(400).json({ message: "No Google ID token provided" });
 
     const decodedToken = await admin.auth().verifyIdToken(idToken);
-    const { uid, email, name } = decodedToken;
+    const { uid, email, name, picture } = decodedToken;
 
     if (!email)
       return res.status(400).json({ message: "Google email is required" });
@@ -91,19 +112,24 @@ export const googleSignup = async (req, res) => {
     let user;
     try {
       user = await auth.getUserByEmail(email);
-      return res
-        .status(400)
-        .json({ message: "User already exists. Please log in." });
     } catch (err) {
       user = await auth.createUser({ uid, email, displayName: name });
     }
 
-    // ✅ Generate JWT
-    const token = jwt.sign({ uid, email }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const username = name.replace(/\s+/g, "").toLowerCase();
+    const userObject = createUserObject(user.uid, email, username, picture);
 
-    res.json({ token, user });
+    await db.collection("users").doc(user.uid).set(userObject);
+
+    const token = jwt.sign(
+      { uid, email, username, profileImage: picture },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    res.json({ token, ...userObject });
   } catch (error) {
     console.error("Google Signup Error:", error);
     res.status(500).json({ message: "Google signup failed!" });
@@ -114,32 +140,36 @@ export const googleSignup = async (req, res) => {
 export const githubSignup = async (req, res) => {
   try {
     const { accessToken } = req.body;
+    if (!accessToken)
+      return res.status(400).json({ message: "GitHub access token is required" });
 
     const githubUser = await axios.get("https://api.github.com/user", {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
-    const { id, login, email } = githubUser.data;
+    const { id, login, email, avatar_url } = githubUser.data;
 
-    if (!email)
-      return res.status(400).json({ message: "GitHub email is required" });
+    const userEmail = email || `${login}@github.com`;
 
     let user;
     try {
-      user = await auth.getUserByEmail(email);
-      return res
-        .status(400)
-        .json({ message: "User already exists. Please log in." });
+      user = await auth.getUserByEmail(userEmail);
     } catch (err) {
-      user = await auth.createUser({ email, displayName: login });
+      user = await auth.createUser({ email: userEmail, displayName: login });
     }
 
-    // Generate JWT
-    const token = jwt.sign({ uid: user.uid, email }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const username = login.toLowerCase();
+    const userObject = createUserObject(user.uid, userEmail, username, avatar_url);
 
-    res.json({ token, uid: user.uid, email });
+    await db.collection("users").doc(user.uid).set(userObject);
+
+    const token = jwt.sign(
+      { uid: user.uid, email: userEmail, username, profileImage: avatar_url },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({ token, ...userObject });
   } catch (error) {
     console.error("GitHub Signup Error:", error);
     res.status(500).json({ message: "GitHub signup failed!" });
@@ -169,12 +199,18 @@ export const googleLogin = async (req, res) => {
         .json({ message: "User not found. Please sign up first." });
     }
 
-    // ✅ Generate JWT
-    const token = jwt.sign({ uid, email }, process.env.JWT_SECRET, {
+    const userDoc = await db.collection("users").doc(user.uid).get();
+    if (!userDoc.exists) {
+      return res.status(400).json({ message: "User data not found!" });
+    }
+
+    const userData = userDoc.data();
+
+    const token = jwt.sign({ uid, email, username: userData.username }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
-    res.json({ token, user });
+    res.json({ token, uid, email, username: userData.username });
   } catch (error) {
     console.error("Google Login Error:", error);
     res.status(500).json({ message: "Google login failed!" });
@@ -204,12 +240,18 @@ export const githubLogin = async (req, res) => {
         .json({ message: "User not found. Please sign up first." });
     }
 
-    // Generate JWT
-    const token = jwt.sign({ uid: user.uid, email }, process.env.JWT_SECRET, {
+    const userDoc = await db.collection("users").doc(user.uid).get();
+    if (!userDoc.exists) {
+      return res.status(400).json({ message: "User data not found!" });
+    }
+
+    const userData = userDoc.data();
+
+    const token = jwt.sign({ uid: user.uid, email, username: userData.username }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
-    res.json({ token, uid: user.uid, email });
+    res.json({ token, uid: user.uid, email, username: userData.username });
   } catch (error) {
     console.error("GitHub Login Error:", error);
     res.status(500).json({ message: "GitHub login failed!" });

@@ -19,14 +19,23 @@ export default function BoardLayout({ children }) {
       <body className="dark:bg-transparent overflow-hidden">
         <Header />
 
-        <div style={{ minHeight: "calc(100vh - 40px)" }}>
+        <div style={{ minHeight: "calc(100vh - 40px)",
+            backgroundImage: `url(/background-${Math.floor(Math.random() * 4)}.jpg)`,
+            backgroundAttachment: "fixed",
+            backgroundSize: "cover",
+         }}
+         className="bg-gray-500/10"
+         >
           <div className="flex items-start flex-row">
-            <Sideboard className="sticky top-0 right-0 w-[280px] border-r border-gray-500 overflow-auto" />
+            <Sideboard className="sticky top-0 right-0 w-[320px] border-r border-gray-500/35 overflow-auto backdrop-blur-sm dark:bg-gray-800/70 bg-gray-50/85" />
             <div
-              className=" bg-gray-700 overflow-auto"
-              style={{ height: "calc(100vh - 40px)", width: "100%"  }}
+              className=" overflow-auto"
+              style={{
+                height: "calc(100vh - 40px)",
+                width: "100%",
+              }}
             >
-              <BoardHeader />
+              <BoardHeader className="sticky top-0 left-0 h-[61px] py-[8px] px-8 w-full border-b backdrop-blur-sm bg-gray-200/30 dark:bg-gray-700/20" />
               <RouteGuard>{children}</RouteGuard>
             </div>
           </div>
