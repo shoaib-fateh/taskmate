@@ -1,9 +1,16 @@
-"use client"
+"use client";
 
 import AddListButton from "@/components/add-list-button";
 import List from "@/components/list";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import SortableItem from "@/components/sortable-item";
 
 export default function Board() {
   const [lists, setLists] = useState([]);
@@ -12,25 +19,60 @@ export default function Board() {
 
   const fetchLists = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lists/get-lists/${boardId}`);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/lists/get-lists/${boardId}`
+      );
       if (!res.ok) throw new Error("Failed to fetch lists");
-      const data = await res.json();
+      let data = await res.json();
+
+      data = data.sort((a, b) => a.order - b.order);
+
       setLists(data || []);
     } catch (error) {
       console.error("Error fetching lists:", error);
     }
   };
-
   useEffect(() => {
+
     fetchLists();
   }, [boardId]);
 
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = lists.findIndex((list) => list.listId === active.id);
+    const newIndex = lists.findIndex((list) => list.listId === over.id);
+
+    const newLists = arrayMove(lists, oldIndex, newIndex);
+    setLists(newLists);
+
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lists/update-order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ boardId, lists: newLists }),
+      });
+    } catch (error) {
+      console.error("Error updating list order:", error);
+    }
+  };
+
   return (
-    <div className="flex gap-4 overflow-x-auto p-4">
-      {lists.map((list) => (
-        <List key={list.listId} list={list} />
-      ))}
-      <AddListButton boardId={boardId} onListAdded={fetchLists} />
-    </div>
+    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext
+        items={lists.map((list) => list.listId)}
+        strategy={horizontalListSortingStrategy}
+      >
+        <div className="flex gap-4 overflow-x-auto p-4">
+          {lists.map((list) => (
+            <SortableItem key={list.listId} id={list.listId}>
+              <List list={list} />
+            </SortableItem>
+          ))}
+          <AddListButton boardId={boardId} onListAdded={fetchLists} />
+        </div>
+      </SortableContext>
+    </DndContext>
   );
 }
