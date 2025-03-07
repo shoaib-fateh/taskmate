@@ -47,20 +47,38 @@ export default function Header() {
     }
   }, []);
 
-  const handleCreateBoard = () => {
-    const board = {
-      userId: userData.uid,
-      boardTitle: boardTitle,
-      type: selectedOption,
-      boardId: "3A",
-      lists: [],
-    };
+  const handleCreateBoard = async () => {
+    if (!userData?.uid || !boardTitle.trim()) {
+      console.error("User ID or Board Title is missing!");
+      return;
+    }
 
-    router.push(
-      `/b/${board.userId?.slice(0, 6)}/${
-        board.boardId
-      }/${board.boardTitle.replaceAll(" ", "-")}`
-    );
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/boards/create-board`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: userData.uid,
+            boardTitle: boardTitle,
+            type: selectedOption,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to create board");
+      }
+
+      const data = await response.json();
+
+      router.push(data.boardUrl);
+    } catch (error) {
+      console.error("Error creating board:", error);
+    }
   };
 
   return (

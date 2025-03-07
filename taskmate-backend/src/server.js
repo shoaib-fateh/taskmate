@@ -11,10 +11,10 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-import taskRoutes from "./routes/taskRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import boardRoutes from "./routes/boardRoutes.js";
 
-app.use("/api/tasks", taskRoutes);
+app.use("/api/boards", boardRoutes);
 app.use("/api/auth", authRoutes);
 
 app.listen(PORT, () => console.log(`🔥 Server running on port ${PORT}`));
