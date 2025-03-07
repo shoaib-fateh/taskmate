@@ -13,7 +13,9 @@ app.use(express.json());
 // Routes
 import authRoutes from "./routes/authRoutes.js";
 import boardRoutes from "./routes/boardRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
+app.use("/api/users", userRoutes);
 app.use("/api/boards", boardRoutes);
 app.use("/api/auth", authRoutes);
 

@@ -5,7 +5,7 @@ import CustomAvatar from "@/components/custom-avatar";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useAuth from "@/hooks/useAuth";
-
+import Link from "next/link";
 
 export default function Sideboard({ className }) {
   const [boards, setBoards] = useState([]);
@@ -13,16 +13,18 @@ export default function Sideboard({ className }) {
   const { id1, id2, id3 } = useParams();
   const boardId = id2;
 
-  const userData = useAuth()
+  const userData = useAuth();
 
   useEffect(() => {
     const fetchBoards = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/boards/get-boards?userId=${userData?.uid}`, {
-          method: "GET",
-        });
-        console.log(res);
-        
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/boards/get-boards?userId=${userData?.uid}`,
+          {
+            method: "GET",
+          }
+        );
+
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
@@ -37,41 +39,30 @@ export default function Sideboard({ className }) {
     const fetchMembers = async () => {
       if (!boardId) return;
       try {
-        const res = await fetch(`/api/get-board-members/${boardId}`);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/boards/get-board-members/${boardId}`
+        );
         const data = await res.json();
-        setMembers(data.members || []);
+
+        const membersWithDetails = await Promise.all(
+          data.members.map(async (member) => {
+            const userRes = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/api/users/get-user/${member.userId}`
+            );
+            const userData = await userRes.json();
+            return { ...member, ...userData };
+          })
+        );
+
+        setMembers(membersWithDetails);
       } catch (error) {
         console.error("Error fetching members:", error);
       }
     };
 
     fetchBoards();
-    // fetchMembers();
+    fetchMembers();
   }, [boardId]);
-
-  const mockMembers = [
-    {
-      avatarFallback: "SF",
-      avatarImage: "",
-      text: "Shoaib Fateh",
-      subtext: "admin",
-      color: "yellow",
-    },
-    {
-      avatarFallback: "AL",
-      avatarImage: "",
-      text: "Ahmad Leo",
-      subtext: "member",
-      color: "gray",
-    },
-    {
-      avatarFallback: "SS",
-      avatarImage: "",
-      text: "Sarah Smith",
-      subtext: "member",
-      color: "green",
-    },
-  ];
 
   return (
     <div className={className} style={{ height: "calc(100vh - 40px)" }}>
@@ -92,19 +83,18 @@ export default function Sideboard({ className }) {
           </div>
           <Plus className="text-xl" />
         </div>
-        <div className="my-3 border-b dark:border-yellow-600/35 border-gray-400/60" />
+        <div className="my-3 border-b dark:border-gray-600/35 border-gray-400/60" />
         <div className="members">
-          {mockMembers.map(
-            ({ avatarFallback, avatarImage, text, subtext, color }) => (
-              <CustomAvatar
-                avatarFallbackClass={`bg-${color}-500 rounded-full text-sm`}
-                avatarFallback={avatarFallback}
-                avatarImage={avatarImage}
-                text={text}
-                subtext={subtext}
-              />
-            )
-          )}
+          {members.map((member, index) => (
+            <CustomAvatar
+              key={member.userId || index}
+              avatarFallbackClass="bg-gray-500 rounded-full text-sm"
+              avatarFallback={member.name?.charAt(0) || ""}
+              avatarImage={member.profileImage || ""}
+              text={member.name || ""}
+              subtext={member.role}
+            />
+          ))}
         </div>
 
         {/* Boards */}
@@ -118,15 +108,19 @@ export default function Sideboard({ className }) {
         </div>
 
         <div className="bord">
-          {boards.map(({ boardId, boardTitle, coverImage }, index) => (
-            <CustomAvatar
-              key={index}
-              avatarFallback={boardTitle.slice(0, 2).toUpperCase()}
-              avatarImage={coverImage}
-              text={boardTitle}
-              className="mb-1 cursor-pointer hover:opacity-85"
-            />
-          ))}
+          {boards.map(
+            ({ boardId, boardTitle, coverImage, boardUrl }, index) => (
+              <Link href={boardUrl}>
+                <CustomAvatar
+                  key={index}
+                  avatarFallback={boardTitle.slice(0, 2).toUpperCase()}
+                  avatarImage={coverImage}
+                  text={boardTitle}
+                  className="mb-1 cursor-pointer hover:opacity-85"
+                />
+              </Link>
+            )
+          )}
         </div>
       </nav>
     </div>
