@@ -13,9 +13,19 @@ import { Button } from "@/components/ui/button";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "./ui/input";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Header() {
   const { setTheme } = useTheme();
+
+  const [selectedOption, setSelectedOption] = useState("private");
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSelectChange = (value) => {
+    setSelectedOption(value);
+    setIsOpen(false);
+  };
 
   return (
     <header className="sticky top-0 left-0 w-full border-b dark:border-gray-500 flex justify-between items-center max-h-[48px] py-[8px] px-8">
@@ -26,9 +36,6 @@ export default function Header() {
       </div>
 
       <div className="flex items-center space-x-4">
-        {/* Create Button */}
-        <button className="flex items-center space-x-2 hover:bg-gray-100 dark:hover:bg-gray-700 py-1.5 px-2 pr-3 rounded-md"></button>
-
         <DropdownMenu>
           <DropdownMenuTrigger className="select-none outline-none">
             <Button
@@ -48,14 +55,52 @@ export default function Header() {
               className="dark:border-gray-600"
             />
 
-            <select
-              name="visibility"
-              id=""
-              className="my-2 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:border-gray-600"
-            >
-              <option value="private">Privete</option>
-              <option value="public">Public</option>
-            </select>
+            <div className="my-2 flex flex-col w-full relative">
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full py-2 px-3 text-left border dark:border-gray-600 rounded-md bg-transparent"
+              >
+                {selectedOption === "private" ? "Private" : "Public"}
+              </button>
+
+              <AnimatePresence>
+                {isOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="sticky top-12 left-0 mt-3 w-full bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-md shadow-lg z-20"
+                  >
+                    <div
+                      className={`option py-2 px-3 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 ${
+                        selectedOption === "private"
+                          ? "bg-gray-300 dark:bg-gray-700"
+                          : ""
+                      }`}
+                      onClick={() => handleSelectChange("private")}
+                    >
+                      <div className="font-semibold">Private</div>
+                      <small className="text-sm text-gray-600 dark:text-gray-300">
+                        Only invited members can access the board.
+                      </small>
+                    </div>
+                    <div
+                      className={`option py-2 px-3 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 ${
+                        selectedOption === "public"
+                          ? "bg-gray-300 dark:bg-gray-700"
+                          : ""
+                      }`}
+                      onClick={() => handleSelectChange("public")}
+                    >
+                      <div className="font-semibold">Public</div>
+                      <small className="text-sm text-gray-600 dark:text-gray-300">
+                        Anyone can find and access the board.
+                      </small>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             <Button
               variant="outline"
