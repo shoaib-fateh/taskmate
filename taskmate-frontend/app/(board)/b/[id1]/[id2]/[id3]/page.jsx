@@ -10,7 +10,6 @@ import {
   arrayMove,
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import SortableItem from "@/components/sortable-item";
 
 export default function Board() {
   const [lists, setLists] = useState([]);
@@ -32,8 +31,8 @@ export default function Board() {
       console.error("Error fetching lists:", error);
     }
   };
-  useEffect(() => {
 
+  useEffect(() => {
     fetchLists();
   }, [boardId]);
 
@@ -64,11 +63,14 @@ export default function Board() {
         items={lists.map((list) => list.listId)}
         strategy={horizontalListSortingStrategy}
       >
-        <div className="flex gap-4 overflow-x-auto p-4">
+        <div
+          className="flex gap-4 overflow-x-auto p-4"
+          style={{
+            height: "calc(100vh - 120px)",
+          }}
+        >
           {lists.map((list) => (
-            <SortableItem key={list.listId} id={list.listId}>
-              <List list={list} />
-            </SortableItem>
+            <List key={list.listId} list={list} />
           ))}
           <AddListButton boardId={boardId} onListAdded={fetchLists} />
         </div>
