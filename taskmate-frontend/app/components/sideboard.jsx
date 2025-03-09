@@ -16,13 +16,13 @@ export default function Sideboard({ className }) {
   const userData = useAuth();
 
   useEffect(() => {
+    if (!userData?.uid) return;
+
     const fetchBoards = async () => {
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/boards/get-boards?userId=${userData?.uid}`,
-          {
-            method: "GET",
-          }
+          { method: "GET" }
         );
 
         if (!res.ok) {
@@ -42,6 +42,8 @@ export default function Sideboard({ className }) {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/boards/get-board-members/${boardId}`
         );
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
         const data = await res.json();
 
         const membersWithDetails = await Promise.all(
@@ -49,6 +51,9 @@ export default function Sideboard({ className }) {
             const userRes = await fetch(
               `${process.env.NEXT_PUBLIC_API_URL}/api/users/get-user/${member.userId}`
             );
+            if (!userRes.ok)
+              throw new Error(`HTTP error! status: ${userRes.status}`);
+
             const userData = await userRes.json();
             return { ...member, ...userData };
           })
@@ -62,7 +67,7 @@ export default function Sideboard({ className }) {
 
     fetchBoards();
     fetchMembers();
-  }, [boardId]);
+  }, [boardId, userData?.uid]);
 
   return (
     <div className={className} style={{ height: "calc(100vh - 40px)" }}>
@@ -110,9 +115,8 @@ export default function Sideboard({ className }) {
         <div className="bord">
           {boards.map(
             ({ boardId, boardTitle, coverImage, boardUrl }, index) => (
-              <Link href={boardUrl}>
+              <Link key={index} href={boardUrl}>
                 <CustomAvatar
-                  key={index}
                   avatarFallback={boardTitle.slice(0, 2).toUpperCase()}
                   avatarImage={coverImage}
                   text={boardTitle}

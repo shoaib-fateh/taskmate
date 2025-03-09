@@ -10,6 +10,7 @@ import {
   arrayMove,
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { sendRequest } from "@/lib/apiClient";
 
 export default function Board() {
   const [lists, setLists] = useState([]);
@@ -18,11 +19,10 @@ export default function Board() {
 
   const fetchLists = async () => {
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/lists/get-lists/${boardId}`
+      let data = await sendRequest(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/lists/get-lists/${boardId}`,
+        "GET"
       );
-      if (!res.ok) throw new Error("Failed to fetch lists");
-      let data = await res.json();
 
       data = data.sort((a, b) => a.order - b.order);
 
@@ -47,11 +47,14 @@ export default function Board() {
     setLists(newLists);
 
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lists/update-order`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ boardId, lists: newLists }),
-      });
+      await sendRequest(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/lists/update-order`,
+        "POST",
+        {
+          boardId,
+          lists: newLists,
+        }
+      );
     } catch (error) {
       console.error("Error updating list order:", error);
     }

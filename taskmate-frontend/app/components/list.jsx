@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { sendRequest } from "@/lib/apiClient";
 
 export default function List({ list }) {
   const [cards, setCards] = useState(list.cards || []);
   const [newCardTitle, setNewCardTitle] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
-  // 🛠 درگ فقط روی هدر
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({
       id: list.listId,
@@ -22,12 +22,12 @@ export default function List({ list }) {
     if (!newCardTitle.trim()) return;
 
     try {
-      const res = await fetch(
+      const response = await sendRequest(
         `${process.env.NEXT_PUBLIC_API_URL}/api/cards/create-card`,
+        "POST",
         {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ listId: list.listId, title: newCardTitle }),
+          listId: list.listId,
+          title: newCardTitle,
         }
       );
 
@@ -52,7 +52,7 @@ export default function List({ list }) {
         <div
           {...attributes}
           {...listeners}
-          className="p-3 bg-gray-300 dark:bg-gray-700 text-lg font-semibold rounded-t-lg cursor-grab active:cursor-grabbing"
+          className="p-3 bg-gray-200 dark:bg-gray-800 text-lg font-semibold rounded-t-lg cursor-grab active:cursor-grabbing"
         >
           {list.title}
         </div>

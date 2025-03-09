@@ -18,6 +18,8 @@ import Cookies from "js-cookie";
 import AvatarComponent from "@/components/avatar-component";
 
 import useAuth from "@/hooks/useAuth";
+import NetworkStatus from "./network-status";
+import { sendRequest } from "@/lib/apiClient";
 
 export default function Header() {
   const { setTheme } = useTheme();
@@ -47,28 +49,23 @@ export default function Header() {
     }
 
     try {
-      const response = await fetch(
+      const response = await sendRequest(
         `${process.env.NEXT_PUBLIC_API_URL}/api/boards/create-board`,
+        "POST",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: userData.uid,
-            boardTitle: boardTitle,
-            visibility: selectedOption,
-          }),
+          userId: userData.uid,
+          boardTitle,
+          visibility: selectedOption,
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to create board");
-      }
+      // if (!response.ok) {
+      //   throw new Error("Failed to create board");
+      // }
 
-      const data = await response.json();
+      // const data = await response.json();
 
-      router.push(data.boardUrl);
+      // router.push(data.boardUrl);
     } catch (error) {
       console.error("Error creating board:", error);
     }
@@ -79,6 +76,7 @@ export default function Header() {
       <div className="flex items-center space-x-4">
         <span className="text-xl text-gray-600 dark:text-white">
           Task<b className="font-bold dark:text-white">Mate</b>
+          <NetworkStatus />
         </span>
       </div>
 

@@ -1,3 +1,4 @@
+import { sendRequest } from "@/lib/apiClient";
 import { useState } from "react";
 
 export default function AddListButton({ boardId, onListAdded }) {
@@ -7,13 +8,10 @@ export default function AddListButton({ boardId, onListAdded }) {
   const handleAddList = async () => {
     if (!title.trim()) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lists/create-list`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ boardId, title }),
+      await sendRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/lists/create-list`, "POST", {
+        boardId,
+        title,
       });
-
-      if (!res.ok) throw new Error("Failed to add list");
 
       setTitle("");
       setIsAdding(false);
