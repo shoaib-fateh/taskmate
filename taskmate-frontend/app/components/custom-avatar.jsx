@@ -10,7 +10,7 @@ export default function CustomAvatar({
 }) {
   return (
     <div
-      className={`${className} flex items-center justify-left space-x-3 pt-3 select-none px-3`}
+      className={`${className} flex items-center justify-left space-x-3 select-none px-3`}
     >
       <Avatar className="w-9 h-9">
         <AvatarImage src={avatarImage} />
@@ -18,7 +18,7 @@ export default function CustomAvatar({
           <div
             className={`${
               avatarFallbackClass && avatarFallbackClass
-            } " bg-blue-500 rounded text-xl text-white font-bold uppercase w-9 h-9 flex items-center justify-center`}
+            } " bg-blue-500 rounded text-lg text-white uppercase w-9 h-9 flex items-center justify-center`}
           >
             {avatarFallback}
           </div>

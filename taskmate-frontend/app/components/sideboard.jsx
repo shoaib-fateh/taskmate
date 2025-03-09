@@ -2,76 +2,22 @@
 
 import { BoxSelect, Plus, User2 } from "lucide-react";
 import CustomAvatar from "@/components/custom-avatar";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import useAuth from "@/hooks/useAuth";
 import Link from "next/link";
 
-export default function Sideboard({ className }) {
-  const [boards, setBoards] = useState([]);
-  const [members, setMembers] = useState([]);
-  const { id1, id2, id3 } = useParams();
-  const boardId = id2;
-
-  const userData = useAuth();
-
-  useEffect(() => {
-    if (!userData?.uid) return;
-
-    const fetchBoards = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/boards/get-boards?userId=${userData?.uid}`,
-          { method: "GET" }
-        );
-
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-
-        const data = await res.json();
-        setBoards(data || []);
-      } catch (error) {
-        console.error("Error fetching boards:", error);
-      }
-    };
-
-    const fetchMembers = async () => {
-      if (!boardId) return;
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/boards/get-board-members/${boardId}`
-        );
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-
-        const data = await res.json();
-
-        const membersWithDetails = await Promise.all(
-          data.members.map(async (member) => {
-            const userRes = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL}/api/users/get-user/${member.userId}`
-            );
-            if (!userRes.ok)
-              throw new Error(`HTTP error! status: ${userRes.status}`);
-
-            const userData = await userRes.json();
-            return { ...member, ...userData };
-          })
-        );
-
-        setMembers(membersWithDetails);
-      } catch (error) {
-        console.error("Error fetching members:", error);
-      }
-    };
-
-    fetchBoards();
-    fetchMembers();
-  }, [boardId, userData?.uid]);
-
+export default function Sideboard({ className, members, boards, userBoardId }) {
   return (
     <div className={className} style={{ height: "calc(100vh - 40px)" }}>
-      <CustomAvatar avatarFallback="RJ" text="Remote Job" subtext="Private" />
+      {boards.map(({ boardId, boardTitle, visibility }, index) => (
+        <>
+          {boardId == userBoardId && (
+            <CustomAvatar
+              avatarFallback={boardTitle?.slice(0, 2).toUpperCase()}
+              text={boardTitle}
+              subtext={visibility}
+            />
+          )}
+        </>
+      ))}
 
       <div className="my-3 border-b dark:border-gray-600/35 border-gray-400/60" />
 
@@ -93,8 +39,8 @@ export default function Sideboard({ className }) {
           {members.map((member, index) => (
             <CustomAvatar
               key={member.userId || index}
-              avatarFallbackClass="bg-gray-500 rounded-full text-sm"
-              avatarFallback={member.name?.charAt(0) || ""}
+              avatarFallbackClass="bg-red-600 rounded-full"
+              avatarFallback={member.name?.slice(0, 2).toUpperCase() || ""}
               avatarImage={member.profileImage || ""}
               text={member.name || ""}
               subtext={member.role}
