@@ -15,13 +15,16 @@ import { sendRequest } from "@/lib/apiClient";
 export default function Board() {
   const [lists, setLists] = useState([]);
   const { id1, id2, id3 } = useParams();
+  const boardIdParam = id2;
   const boardId = id2;
 
   const fetchLists = async () => {
     try {
       let data = await sendRequest(
         `${process.env.NEXT_PUBLIC_API_URL}/api/lists/get-lists/${boardId}`,
-        "GET"
+        "GET",
+        null,
+        "lists"
       );
 
       data = data.sort((a, b) => a.order - b.order);
@@ -50,10 +53,8 @@ export default function Board() {
       await sendRequest(
         `${process.env.NEXT_PUBLIC_API_URL}/api/lists/update-order`,
         "POST",
-        {
-          boardId,
-          lists: newLists,
-        }
+        { boardId, lists: newLists },
+        "lists"
       );
     } catch (error) {
       console.error("Error updating list order:", error);
@@ -73,7 +74,11 @@ export default function Board() {
           }}
         >
           {lists.map((list) => (
-            <List key={list.listId} list={list} />
+            <>
+              {list.boardId == boardIdParam && (
+                <List key={list.listId} list={list} />
+              )}
+            </>
           ))}
           <AddListButton boardId={boardId} onListAdded={fetchLists} />
         </div>

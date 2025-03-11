@@ -7,6 +7,7 @@ import BoardHeader from "@/components/board-header";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useAuth from "@/hooks/useAuth";
+import { sendRequest } from "@/lib/apiClient";
 
 // export const metadata = {
 //   title: "Board",
@@ -27,16 +28,13 @@ export default function BoardLayout({ children }) {
 
     const fetchBoards = async () => {
       try {
-        const res = await fetch(
+        const data = await sendRequest(
           `${process.env.NEXT_PUBLIC_API_URL}/api/boards/get-boards?userId=${userData?.uid}`,
-          { method: "GET" }
+          "GET",
+          null,
+          "boards" // Save boards data in IndexedDB
         );
 
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-
-        const data = await res.json();
         setBoards(data || []);
       } catch (error) {
         console.error("Error fetching boards:", error);
@@ -46,24 +44,22 @@ export default function BoardLayout({ children }) {
     const fetchMembers = async () => {
       if (!boardId) return;
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/boards/get-board-members/${boardId}`
+        const data = await sendRequest(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/boards/get-board-members/${boardId}`,
+          "GET",
+          null,
         );
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-
-        const data = await res.json();
 
         const membersWithDetails = await Promise.all(
-          data.members.map(async (member) => {
-            const userRes = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL}/api/users/get-user/${member.userId}`
+          data?.members.map(async (member) => {
+            const userData = await sendRequest(
+              `${process.env.NEXT_PUBLIC_API_URL}/api/users/get-user/${member.userId}`,
+              "GET",
+              null,
+              "users"
             );
-            if (!userRes.ok)
-              throw new Error(`HTTP error! status: ${userRes.status}`);
-
-            const userData = await userRes.json();
             return { ...member, ...userData };
-          })
+          }) || []
         );
 
         setMembers(membersWithDetails);
@@ -74,10 +70,8 @@ export default function BoardLayout({ children }) {
 
     fetchBoards();
     fetchMembers();
-
-    
   }, [boardId, userData?.uid]);
-    return (
+  return (
     <html lang="en">
       <head />
       <body className="dark:bg-transparent overflow-hidden">

@@ -8,7 +8,8 @@ export default function AddListButton({ boardId, onListAdded }) {
   const handleAddList = async () => {
     if (!title.trim()) return;
     try {
-      await sendRequest(`${process.env.NEXT_PUBLIC_API_URL}/api/lists/create-list`, "POST", {
+      await sendRequest(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/lists/create-list`,"POST", {
         boardId,
         title,
       });

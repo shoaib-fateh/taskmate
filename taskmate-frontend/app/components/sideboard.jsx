@@ -60,12 +60,13 @@ export default function Sideboard({ className, members, boards, userBoardId }) {
 
         <div className="bord">
           {boards.map(
-            ({ boardId, boardTitle, coverImage, boardUrl }, index) => (
+            ({ boardId, boardTitle, coverImage, boardUrl, visibility }, index) => (
               <Link key={index} href={boardUrl}>
                 <CustomAvatar
                   avatarFallback={boardTitle.slice(0, 2).toUpperCase()}
                   avatarImage={coverImage}
                   text={boardTitle}
+                  subtext={visibility}
                   className="mb-1 cursor-pointer hover:opacity-85"
                 />
               </Link>

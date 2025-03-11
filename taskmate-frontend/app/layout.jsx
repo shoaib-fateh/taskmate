@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import RouteGuard from "@/components/route-guard";
 import { processQueuedRequests } from "@/lib/apiClient";
 import { useEffect } from "react";
+import "@/lib/syncService"
 
 // export const metadata = {
 //   title: "Task Mate",
